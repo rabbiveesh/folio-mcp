@@ -2,6 +2,9 @@
 name = "folio-mcp"
 version = "0.1.0"
 edition = "2024"
+license = "MIT OR Apache-2.0"
+description = "MCP server that serves book pages to agents as images, from pluggable opaque backends"
+repository = "https://github.com/rabbiveesh/folio-mcp"
 
 [dependencies]
 anyhow = "1.0.104"

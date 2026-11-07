@@ -53,3 +53,8 @@ The HTTP mode has no auth. Keep it on localhost; `--allow-host` adds accepted `H
 values if you put it behind something.
 
 Grep for `HEY YO LISTEN - VEEEESH` to find the places that need your own code.
+
+## License
+
+Licensed under either of [Apache License, Version 2.0](LICENSE-APACHE) or
+[MIT license](LICENSE-MIT) at your option.
