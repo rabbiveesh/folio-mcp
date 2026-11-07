@@ -13,7 +13,7 @@ jobs:
   check:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       # rustup picks up rust-toolchain.toml (pinned version + rustfmt/clippy).
       - run: rustup toolchain install
       - uses: Swatinem/rust-cache@v2
