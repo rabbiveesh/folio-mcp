@@ -1,0 +1,71 @@
+# folio-mcp config. Default location: ~/.config/folio/folio.toml (or --config / $FOLIO_CONFIG).
+#
+# Placeholders in backend commands, file paths and catalog commands:
+#   {book}     the book id the agent asked for
+#   {locator}  the book's locator (defaults to the id)
+#   {page}     1-based page, {page0} 0-based; zero-pad with {page:04}
+#   {{ }}      literal braces
+# Commands are run directly (no shell), one argv element per array item.
+
+[render]
+max_edge = 1568        # longest edge sent to the agent; Claude downscales past this anyway
+format = "jpeg"        # or "png"
+quality = 85
+grayscale = true       # agents can still ask for color per call
+cache_pages = 64       # raw pages kept in memory; nothing is ever cached to disk
+max_pages_per_call = 4
+
+# ---------------------------------------------------------------- backends
+# A backend turns (book, page) into image bytes. folio never looks inside.
+
+# HEY YO LISTEN - VEEEESH: point this at your real backend (or copy and adapt
+# examples/encrypted-dir.sh). Keys/secrets go in `env`, never in the catalog.
+# An external program: prints the page image on stdout, non-zero exit on error
+# (stderr is shown to the agent). `count` is optional.
+[backends.vault]
+type = "command"
+page = ["~/personal/folio-mcp/examples/encrypted-dir.sh", "page", "{locator}", "{page}"]
+count = ["~/personal/folio-mcp/examples/encrypted-dir.sh", "count", "{locator}"]
+env = { FOLIO_KEY_FILE = "~/.config/folio/key" }
+timeout_secs = 30
+
+# Plain image files on disk. The page count is found by probing 1, 2, 4, ...
+[backends.scans]
+type = "files"
+path = "~/scans/{locator}/{page:04}.jpg"
+
+# Rendering a PDF page is just another command:
+# [backends.pdf]
+# type = "command"
+# page = ["pdftoppm", "-f", "{page}", "-l", "{page}", "-r", "150", "-png", "{locator}"]
+
+# ---------------------------------------------------------------- catalog
+# Book ids are arbitrary strings: numbers, names, whatever you like.
+# Resolution order: [books] table -> catalog.lookup -> catalog.default_backend.
+
+[catalog]
+# HEY YO LISTEN - VEEEESH: pick how ids map to books — list them under [books],
+# write a `lookup` script, or just set default_backend and let the backend
+# take the id as-is.
+# Unknown ids go to this backend with the id as the locator, so a backend that
+# already knows how to find book "1234" needs no catalog at all.
+# default_backend = "vault"
+
+# Run for ids not in [books]. Print JSON, every field optional:
+#   {"title": "...", "backend": "vault", "locator": "...", "pages": 412}
+# Exit non-zero (or print nothing) for "no such book".
+# lookup = ["~/bin/find-book", "{book}"]
+
+# Printed as a JSON array of {"id", "title"} for list_books.
+# list = ["~/bin/list-books"]
+
+[books.1]
+title = "Example encrypted book"
+backend = "vault"
+locator = "/srv/books/0001"   # passed to the backend verbatim (no ~ expansion)
+
+[books.ketzos]
+title = "Example scanned book"
+backend = "scans"
+locator = "ketzos"
+pages = 412                # optional; skips asking the backend
